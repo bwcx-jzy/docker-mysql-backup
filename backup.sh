@@ -26,17 +26,28 @@ if [ -z "${MYSQL_HOST}" ] || [ -z "${MYSQL_USER}" ] || [ -z "${MYSQL_PASSWORD}" 
     exit 1
 fi
 
+# 创建临时的 MySQL 配置文件
+MYSQL_CNF=$(mktemp)
+cat >"${MYSQL_CNF}" <<EOF
+[client]
+host=${MYSQL_HOST}
+port=${MYSQL_PORT}
+user=${MYSQL_USER}
+password=${MYSQL_PASSWORD}
+EOF
+
 # 测试数据库连接
 echo "[${TIMESTAMP}] 测试数据库连接..."
-if ! mysqladmin ping -h "${MYSQL_HOST}" -P "${MYSQL_PORT}" -u "${MYSQL_USER}" --password="${MYSQL_PASSWORD}" --connect-timeout=10 --silent; then
+if ! mysqladmin --defaults-file="${MYSQL_CNF}" ping --connect-timeout=10 --silent; then
     echo "[${TIMESTAMP}] 错误: 无法连接到 MySQL 服务器"
+    rm -f "${MYSQL_CNF}"
     exit 1
 fi
 
 echo "[${TIMESTAMP}] 数据库连接成功，开始备份..."
 
 # 执行备份
-MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump \
+mysqldump --defaults-file="${MYSQL_CNF}" \
     --single-transaction \
     --quick \
     --set-gtid-purged=OFF \
@@ -45,10 +56,10 @@ MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump \
     --events \
     --add-drop-database \
     --add-drop-table \
-    -h "${MYSQL_HOST}" \
-    -P "${MYSQL_PORT}" \
-    -u "${MYSQL_USER}" \
     "${MYSQL_DATABASE}" >"${BACKUP_FILE}"
+
+# 删除临时配置文件
+rm -f "${MYSQL_CNF}"
 
 # 检查备份结果和文件大小
 BACKUP_RESULT=$?
