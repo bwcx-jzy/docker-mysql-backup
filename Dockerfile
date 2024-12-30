@@ -3,6 +3,11 @@ FROM ubuntu:22.04
 # 设置非交互式安装
 ENV DEBIAN_FRONTEND=noninteractive
 
+# 设置时区
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && \
+    echo $TZ > /etc/timezone
+
 # 安装必要的软件包
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -10,6 +15,7 @@ RUN apt-get update && \
     cron \
     moreutils \
     ca-certificates \
+    tzdata \
     && rm -rf /var/lib/apt/lists/* \
     && rm -rf /var/cache/apt/*
 
@@ -39,8 +45,10 @@ RUN mkdir -p /var/log && \
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'set -e' >> /app/entrypoint.sh && \
     echo 'echo "=== Starting MySQL Backup Service ===" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
+    echo 'echo "Current timezone: $(date +%Z)" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
+    echo 'echo "Current time: $(date)" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Setting up cron job: ${BACKUP_CRON} /app/backup.sh" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
-    echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON|MAX_BACKUPS" > /etc/environment' >> /app/entrypoint.sh && \
+    echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON|MAX_BACKUPS|TZ" > /etc/environment' >> /app/entrypoint.sh && \
     echo 'echo "SHELL=/bin/sh" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "${BACKUP_CRON} root cd /app && /app/backup.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
