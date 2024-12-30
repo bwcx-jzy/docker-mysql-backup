@@ -22,7 +22,7 @@ if [ -z "${MYSQL_HOST}" ] || [ -z "${MYSQL_USER}" ] || [ -z "${MYSQL_PASSWORD}" 
 fi
 
 # 测试数据库连接
-if ! mysqladmin ping -h "${MYSQL_HOST}" -P "${MYSQL_PORT}" -u "${MYSQL_USER}" -p"${MYSQL_PASSWORD}" --silent; then
+if ! mysqladmin ping -h "${MYSQL_HOST}" -P "${MYSQL_PORT}" -u "${MYSQL_USER}" --password="${MYSQL_PASSWORD}" --connect-timeout=10; then
     echo "[${TIMESTAMP}] 错误: 无法连接到 MySQL 服务器"
     exit 1
 fi
@@ -31,11 +31,18 @@ echo "[${TIMESTAMP}] 数据库连接测试成功，开始备份..."
 
 # 执行备份
 set -o pipefail # 确保管道中的错误被捕获
-mysqldump \
+MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump \
+    --single-transaction \
+    --quick \
+    --set-gtid-purged=OFF \
+    --triggers \
+    --routines \
+    --events \
+    --add-drop-database \
+    --add-drop-table \
     -h "${MYSQL_HOST}" \
     -P "${MYSQL_PORT}" \
     -u "${MYSQL_USER}" \
-    -p"${MYSQL_PASSWORD}" \
     "${MYSQL_DATABASE}" >"${BACKUP_FILE}"
 
 # 检查备份结果

@@ -1,16 +1,17 @@
-FROM alpine:3.18
+FROM ubuntu:22.04
 
-# 添加 MySQL 仓库并更新
-RUN echo '@community http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories && \
-    apk update
+# 设置非交互式安装
+ENV DEBIAN_FRONTEND=noninteractive
 
 # 安装必要的软件包
-RUN apk add --no-cache \
-    mysql-client@community \
-    mysql-client-libs@community \
-    bash \
-    dcron \
-    moreutils
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    mysql-client-8.0 \
+    cron \
+    moreutils \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /var/cache/apt/*
 
 # 创建备份目录
 WORKDIR /app
@@ -34,19 +35,14 @@ RUN mkdir -p /var/log && \
     touch /var/log/cron.log && \
     ln -sf /dev/stdout /var/log/cron.log
 
-# 创建 cron 目录并设置权限
-RUN mkdir -p /var/spool/cron/crontabs && \
-    mkdir -p /etc/cron.d && \
-    chown -R root:root /var/spool/cron/crontabs && \
-    chmod -R 0600 /var/spool/cron/crontabs
-
 # 创建启动脚本
-RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
+RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
     echo 'echo "=== Starting MySQL Backup Service ===" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Setting up cron job: ${BACKUP_CRON} /app/backup.sh" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
-    echo 'echo "${BACKUP_CRON} /app/backup.sh 2>&1 | ts \"[%Y-%m-%d %H:%M:%S]\"" > /etc/crontabs/root' >> /app/entrypoint.sh && \
-    echo 'chmod 0644 /etc/crontabs/root' >> /app/entrypoint.sh && \
-    echo 'exec crond -f -l 8 2>&1 | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
+    echo 'echo "${BACKUP_CRON} /app/backup.sh 2>&1 | ts \"[%Y-%m-%d %H:%M:%S]\"" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'chmod 0644 /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'crontab /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'exec cron -f' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # 设置启动命令
