@@ -16,6 +16,7 @@
 - 支持自定义备份时间间隔
 - 支持多架构部署（AMD64/ARM64）
 - 支持自定义备份文件保留天数
+- 支持自定义 MySQL 端口
 - 备份过程日志记录
 
 ## 使用方法
@@ -54,6 +55,7 @@ docker run -d \
   --name mysql-backup \
   --network mysql-network \
   -e MYSQL_HOST=mysql \
+  -e MYSQL_PORT=3306 \
   -e MYSQL_USER=root \
   -e MYSQL_PASSWORD=your_password \
   -e MYSQL_DATABASE=your_database \
@@ -66,6 +68,7 @@ docker run -d \
 ### 环境变量说明
 
 - `MYSQL_HOST`: MySQL 容器名称或地址
+- `MYSQL_PORT`: MySQL 端口号（可选，默认为 3306）
 - `MYSQL_USER`: MySQL 用户名
 - `MYSQL_PASSWORD`: MySQL 密码
 - `MYSQL_DATABASE`: 要备份的数据库名
@@ -111,6 +114,7 @@ docker run -d \
   --name mysql \
   --network mysql-network \
   -e MYSQL_ROOT_PASSWORD=123456 \
+  -p 3307:3306 \
   mysql:8.0
 ```
 
@@ -121,6 +125,7 @@ docker run -d \
   --name mysql-backup \
   --network mysql-network \
   -e MYSQL_HOST=mysql \
+  -e MYSQL_PORT=3306 \
   -e MYSQL_USER=root \
   -e MYSQL_PASSWORD=123456 \
   -e MYSQL_DATABASE=mydb \

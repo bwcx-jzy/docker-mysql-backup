@@ -1,7 +1,8 @@
 #!/bin/bash
 
-# 设置默认的保留天数
+# 设置默认的保留天数和端口
 RETENTION_DAYS=${RETENTION_DAYS:-30}
+MYSQL_PORT=${MYSQL_PORT:-3306}
 
 # 获取当前时间戳
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -11,6 +12,7 @@ echo "[${TIMESTAMP}] 开始备份数据库 ${MYSQL_DATABASE}"
 
 # 执行备份
 mysqldump -h ${MYSQL_HOST} \
+    -P ${MYSQL_PORT} \
     -u ${MYSQL_USER} \
     -p${MYSQL_PASSWORD} \
     --databases ${MYSQL_DATABASE} >${BACKUP_FILE}
