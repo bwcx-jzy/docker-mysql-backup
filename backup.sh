@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # 设置默认的保留天数和端口
 RETENTION_DAYS=${RETENTION_DAYS:-30}
@@ -30,7 +30,6 @@ fi
 echo "[${TIMESTAMP}] 数据库连接测试成功，开始备份..."
 
 # 执行备份
-set -o pipefail # 确保管道中的错误被捕获
 MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump \
     --single-transaction \
     --quick \
@@ -45,10 +44,12 @@ MYSQL_PWD="${MYSQL_PASSWORD}" mysqldump \
     -u "${MYSQL_USER}" \
     "${MYSQL_DATABASE}" >"${BACKUP_FILE}"
 
-# 检查备份结果
-if [ $? -eq 0 ] && [ -s "${BACKUP_FILE}" ]; then
+# 检查备份结果和文件大小
+BACKUP_RESULT=$?
+if [ $BACKUP_RESULT -eq 0 ] && [ -s "${BACKUP_FILE}" ]; then
+    FILESIZE=$(du -h "${BACKUP_FILE}" | cut -f1)
     echo "[${TIMESTAMP}] 数据库 ${MYSQL_DATABASE} 备份成功: ${BACKUP_FILE}"
-    echo "[${TIMESTAMP}] 备份文件大小: $(du -h ${BACKUP_FILE} | cut -f1)"
+    echo "[${TIMESTAMP}] 备份文件大小: ${FILESIZE}"
 else
     echo "[${TIMESTAMP}] 数据库 ${MYSQL_DATABASE} 备份失败"
     rm -f "${BACKUP_FILE}" # 删除空文件或失败的备份

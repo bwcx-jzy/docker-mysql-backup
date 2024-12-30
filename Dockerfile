@@ -36,7 +36,7 @@ RUN mkdir -p /var/log && \
     ln -sf /dev/stdout /var/log/cron.log
 
 # 创建启动脚本
-RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
+RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'printenv | grep -v "no_proxy" >> /etc/environment' >> /app/entrypoint.sh && \
     echo 'echo "=== Starting MySQL Backup Service ===" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Setting up cron job: ${BACKUP_CRON} /app/backup.sh" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
