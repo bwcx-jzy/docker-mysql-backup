@@ -37,12 +37,13 @@ RUN mkdir -p /var/log && \
 
 # 创建启动脚本
 RUN echo '#!/bin/bash' > /app/entrypoint.sh && \
+    echo 'printenv | grep -v "no_proxy" >> /etc/environment' >> /app/entrypoint.sh && \
     echo 'echo "=== Starting MySQL Backup Service ===" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Setting up cron job: ${BACKUP_CRON} /app/backup.sh" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
-    echo 'echo "${BACKUP_CRON} /app/backup.sh 2>&1 | ts \"[%Y-%m-%d %H:%M:%S]\"" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'echo "${BACKUP_CRON} root /app/backup.sh 2>&1 | ts \"[%Y-%m-%d %H:%M:%S]\" >> /var/log/cron.log 2>&1" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'chmod 0644 /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
-    echo 'crontab /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
-    echo 'exec cron -f' >> /app/entrypoint.sh && \
+    echo 'service cron start' >> /app/entrypoint.sh && \
+    echo 'tail -f /var/log/cron.log' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # 设置启动命令
