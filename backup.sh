@@ -31,11 +31,7 @@ echo "[${TIMESTAMP}] 数据库连接测试成功，开始备份..."
 
 # 执行备份
 set -o pipefail # 确保管道中的错误被捕获
-mysqldump --single-transaction \
-    --set-gtid-purged=OFF \
-    --triggers \
-    --routines \
-    --events \
+mysqldump \
     -h "${MYSQL_HOST}" \
     -P "${MYSQL_PORT}" \
     -u "${MYSQL_USER}" \
