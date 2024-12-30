@@ -28,7 +28,8 @@ ENV MYSQL_HOST=mysql \
     MYSQL_PASSWORD=root \
     MYSQL_DATABASE=test \
     BACKUP_CRON="0 0 * * *" \
-    RETENTION_DAYS=30
+    RETENTION_DAYS=30 \
+    MAX_BACKUPS=0
 
 # 创建日志目录和文件
 RUN mkdir -p /var/log && \
@@ -39,7 +40,7 @@ RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'set -e' >> /app/entrypoint.sh && \
     echo 'echo "=== Starting MySQL Backup Service ===" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Setting up cron job: ${BACKUP_CRON} /app/backup.sh" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
-    echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON" > /etc/environment' >> /app/entrypoint.sh && \
+    echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON|MAX_BACKUPS" > /etc/environment' >> /app/entrypoint.sh && \
     echo 'echo "SHELL=/bin/sh" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "${BACKUP_CRON} root cd /app && /app/backup.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
