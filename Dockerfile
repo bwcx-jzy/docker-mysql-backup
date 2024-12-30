@@ -37,13 +37,20 @@ RUN mkdir -p /var/log && \
 
 # 创建启动脚本
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
-    echo 'printenv | grep -v "no_proxy" >> /etc/environment' >> /app/entrypoint.sh && \
+    echo 'set -e' >> /app/entrypoint.sh && \
     echo 'echo "=== Starting MySQL Backup Service ===" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Setting up cron job: ${BACKUP_CRON} /app/backup.sh" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
-    echo 'echo "${BACKUP_CRON} root /app/backup.sh 2>&1 | ts \"[%Y-%m-%d %H:%M:%S]\" >> /var/log/cron.log 2>&1" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON" > /etc/environment' >> /app/entrypoint.sh && \
+    echo 'echo "SHELL=/bin/sh" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'echo "${BACKUP_CRON} root cd /app && /app/backup.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'chmod 0644 /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'crontab /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'echo "Current crontab:"' >> /app/entrypoint.sh && \
+    echo 'crontab -l' >> /app/entrypoint.sh && \
     echo 'service cron start' >> /app/entrypoint.sh && \
-    echo 'tail -f /var/log/cron.log' >> /app/entrypoint.sh && \
+    echo 'echo "Cron service started, watching logs..."' >> /app/entrypoint.sh && \
+    echo 'exec tail -f /var/log/cron.log' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # 设置启动命令
