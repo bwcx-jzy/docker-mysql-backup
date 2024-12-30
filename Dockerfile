@@ -1,12 +1,13 @@
 FROM alpine:3.18
 
-# 添加 MySQL 仓库
-RUN echo 'https://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories
+# 添加 MySQL 仓库并更新
+RUN echo '@community http://dl-cdn.alpinelinux.org/alpine/edge/community' >> /etc/apk/repositories && \
+    apk update
 
 # 安装必要的软件包
 RUN apk add --no-cache \
-    mysql-client=8.0.* \
-    mysql-client-libs=8.0.* \
+    mysql-client@community \
+    mysql-client-libs@community \
     bash \
     dcron \
     moreutils
