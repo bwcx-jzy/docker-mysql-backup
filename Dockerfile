@@ -32,8 +32,7 @@ ENV MYSQL_HOST=mysql \
 
 # 创建日志目录和文件
 RUN mkdir -p /var/log && \
-    touch /var/log/cron.log && \
-    ln -sf /dev/stdout /var/log/cron.log
+    touch /var/log/cron.log
 
 # 创建启动脚本
 RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
@@ -43,14 +42,21 @@ RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON" > /etc/environment' >> /app/entrypoint.sh && \
     echo 'echo "SHELL=/bin/sh" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
-    echo 'echo "${BACKUP_CRON} root cd /app && /app/backup.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
+    echo 'echo "${BACKUP_CRON} root /app/backup.sh 2>&1 | ts \"[%Y-%m-%d %H:%M:%S]\"" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'chmod 0644 /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'crontab /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "Current crontab:"' >> /app/entrypoint.sh && \
     echo 'crontab -l' >> /app/entrypoint.sh && \
     echo 'service cron start' >> /app/entrypoint.sh && \
     echo 'echo "Cron service started, watching logs..."' >> /app/entrypoint.sh && \
-    echo 'exec tail -f /var/log/cron.log' >> /app/entrypoint.sh && \
+    echo '# 创建一个管道用于日志转发' >> /app/entrypoint.sh && \
+    echo 'mkfifo /var/log/cron.pipe' >> /app/entrypoint.sh && \
+    echo '# 后台运行日志转发' >> /app/entrypoint.sh && \
+    echo 'cat /var/log/cron.pipe | ts "[%Y-%m-%d %H:%M:%S]" >> /proc/1/fd/1 &' >> /app/entrypoint.sh && \
+    echo '# 将日志重定向到管道' >> /app/entrypoint.sh && \
+    echo 'tail -F /var/log/cron.log > /var/log/cron.pipe &' >> /app/entrypoint.sh && \
+    echo '# 保持容器运行' >> /app/entrypoint.sh && \
+    echo 'while true; do sleep 1; done' >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # 设置启动命令
