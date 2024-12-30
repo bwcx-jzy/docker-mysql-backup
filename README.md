@@ -22,10 +22,16 @@
 
 ### 1. 构建镜像
 
+#### 使用预构建镜像
+可以直接使用 Docker Hub 上的预构建镜像：
+```bash
+docker pull bwcxjzy/docker-mysql-backup:latest
+```
+
 #### 单架构构建
 在项目目录下执行以下命令构建镜像：
 ```bash
-docker build -t mysql-backup .
+docker build -t bwcxjzy/docker-mysql-backup .
 ```
 
 #### 多架构构建
@@ -36,7 +42,7 @@ docker buildx create --use
 
 # 构建并推送多架构镜像
 docker buildx build --platform linux/amd64,linux/arm64 \
-  -t your-registry/mysql-backup:latest \
+  -t bwcxjzy/docker-mysql-backup:latest \
   --push .
 ```
 
@@ -54,7 +60,7 @@ docker run -d \
   -e BACKUP_CRON="0 0 * * *" \
   -e RETENTION_DAYS=30 \
   -v /path/to/backup:/backup \
-  mysql-backup
+  bwcxjzy/docker-mysql-backup:latest
 ```
 
 ### 环境变量说明
@@ -121,7 +127,7 @@ docker run -d \
   -e BACKUP_CRON="0 0 * * *" \
   -e RETENTION_DAYS=0 \
   -v /data/mysql-backup:/backup \
-  mysql-backup
+  bwcxjzy/docker-mysql-backup:latest
 ```
 
 ## 故障排查
