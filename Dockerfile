@@ -48,7 +48,7 @@ RUN echo '#!/bin/sh' > /app/entrypoint.sh && \
     echo 'echo "Current timezone: $(date +%Z)" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Current time: $(date)" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
     echo 'echo "Setting up cron job: ${BACKUP_CRON} /app/backup.sh" | ts "[%Y-%m-%d %H:%M:%S]"' >> /app/entrypoint.sh && \
-    echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON|BACKUP_ALL_DATABASES|SET_GTID_PURGED|MAX_BACKUPS|TZ" > /etc/environment' >> /app/entrypoint.sh && \
+    echo 'env | grep -E "MYSQL_|RETENTION_DAYS|BACKUP_CRON|BACKUP_ALL_DATABASES|SET_GTID_PURGED|MAX_BACKUPS|TZ|EXCLUDED_DATABASES" > /etc/environment' >> /app/entrypoint.sh && \
     echo 'echo "SHELL=/bin/sh" > /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
     echo 'echo "${BACKUP_CRON} root cd /app && /app/backup.sh >> /var/log/cron.log 2>&1" >> /etc/cron.d/mysql-backup' >> /app/entrypoint.sh && \
