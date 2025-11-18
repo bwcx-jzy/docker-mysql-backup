@@ -73,6 +73,7 @@ docker run -d \
 - `MYSQL_DATABASE`: 要备份的数据库名
 - `BACKUP_CRON`: 备份频率（Cron 表达式格式）
 - `RETENTION_DAYS`: 备份文件保留天数（可选，默认30天，设置为0表示永久保留）
+- `SET_GTID_PURGED`: 控制 `mysqldump --set-gtid-purged` 参数（可选，默认为 `AUTO`，可设置为 `ON`/`OFF`）
 
 ### BACKUP_CRON 示例
 

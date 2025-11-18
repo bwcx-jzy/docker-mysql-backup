@@ -6,6 +6,7 @@ MYSQL_PORT=${MYSQL_PORT:-3306}
 MAX_BACKUPS=${MAX_BACKUPS:-0} # 默认为0表示不限制文件数量
 BACKUP_ALL_DATABASES=${BACKUP_ALL_DATABASES:-false} # 默认为false，不备份所有数据库
 EXCLUDED_DATABASES=${EXCLUDED_DATABASES:-} # 默认为空，排除系统数据库
+SET_GTID_PURGED=${SET_GTID_PURGED:-AUTO} # 默认为 AUTO，自动适应 GTID 设置
 
 # 确定备份模式
 if [ -n "${MYSQL_DATABASE}" ]; then
@@ -129,7 +130,7 @@ for db in ${DATABASES_TO_BACKUP}; do
     if mysqldump --defaults-file="${MYSQL_CNF}" \
         --single-transaction \
         --quick \
-        --set-gtid-purged=OFF \
+        --set-gtid-purged="${SET_GTID_PURGED}" \
         --triggers \
         --routines \
         --events \
