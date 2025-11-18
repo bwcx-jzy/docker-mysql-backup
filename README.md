@@ -53,7 +53,6 @@ docker buildx build --platform linux/amd64,linux/arm64 \
 ```bash
 docker run -d \
   --name mysql-backup \
-  --network mysql-network \
   -e MYSQL_HOST=mysql \
   -e MYSQL_PORT=3306 \
   -e MYSQL_USER=root \
@@ -112,7 +111,6 @@ docker logs mysql-backup
 # MySQL 容器运行示例
 docker run -d \
   --name mysql \
-  --network mysql-network \
   -e MYSQL_ROOT_PASSWORD=123456 \
   -p 3307:3306 \
   mysql:8.0
@@ -123,7 +121,6 @@ docker run -d \
 # 备份容器运行示例
 docker run -d \
   --name mysql-backup \
-  --network mysql-network \
   -e MYSQL_HOST=mysql \
   -e MYSQL_PORT=3306 \
   -e MYSQL_USER=root \
