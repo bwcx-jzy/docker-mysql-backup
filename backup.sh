@@ -133,6 +133,8 @@ for db in ${DATABASES_TO_BACKUP}; do
         --triggers \
         --routines \
         --events \
+        --source-data=2 \
+        --set-gtid-purged=ON \
         --add-drop-database \
         --add-drop-table \
         "${db}" >"${BACKUP_FILE}"; then
